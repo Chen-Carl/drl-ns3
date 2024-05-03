@@ -73,7 +73,7 @@ int main()
     recvApps.Start(ns3::Seconds(0.0));
     recvApps.Stop(ns3::Seconds(10.0));
 
-    drl::RpcServerHelper rpcServerHelper(node1Address);
+    drl::RpcServerHelper rpcServerHelper;
     ns3::ApplicationContainer rpcServers = rpcServerHelper.Install(nodes.Get(1));
     rpcServers.Start(ns3::Seconds(0.0));
     rpcServers.Stop(ns3::Seconds(10.0));

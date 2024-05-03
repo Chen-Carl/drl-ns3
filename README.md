@@ -26,4 +26,9 @@ drl::RpcServerHelper rpcServerHelper(nodeAddress);  // create application with h
 ns3::ApplicationContainer rpcServers = rpcServerHelper.Install(nodes.Get(0));   // install application on node 0
 ```
 
+### Send RPC Request
 
+``` cpp
+ns3::Ptr<drl::RpcClientApplication> rpcClient = ns3::DynamicCast<drl::RpcClientApplication>(rpcClients.Get(0));
+ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, nodes.Get(1));
+```

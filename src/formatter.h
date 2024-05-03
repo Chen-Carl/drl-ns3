@@ -35,19 +35,6 @@ struct fmt::formatter<ns3::Ipv4Address> : fmt::formatter<std::string>
 };
 
 template <>
-struct fmt::formatter<ns3::Address> : fmt::formatter<std::string> 
-{
-    auto format(ns3::Address ip, format_context &ctx) -> decltype(ctx.out()) 
-    {
-        ns3::Ipv4Address address = ns3::InetSocketAddress::ConvertFrom(ip).GetIpv4();
-        uint16_t port = ns3::InetSocketAddress::ConvertFrom(ip).GetPort();
-        std::stringstream ss;
-        ss << address << ":" << port;
-        return fmt::format_to(ctx.out(), "{}", ss.str());
-    }
-};
-
-template <>
 struct fmt::formatter<ns3::Ptr<ns3::Node>> : fmt::formatter<std::string> 
 {
     auto format(ns3::Ptr<ns3::Node> node, format_context &ctx) -> decltype(ctx.out()) 

@@ -74,7 +74,7 @@ void RpcClientApplication::HandleRead(ns3::Ptr<ns3::Socket> socket)
     ns3::Ptr<ns3::Packet> packet;
     ns3::Address from;
     ns3::Address localAddress;
-    while (packet = socket->RecvFrom(from))
+    while (packet = socket->RecvFrom(16, 0, from))
     {
         uint8_t buffer[16];
         packet->CopyData(buffer, 16);

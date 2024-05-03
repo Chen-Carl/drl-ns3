@@ -25,9 +25,9 @@ ns3::TypeId RpcServerApplication::GetTypeId()
         .AddConstructor<RpcServerApplication>()
         .AddAttribute("Local",
             "The Address on which to Bind the rx socket.",
-            ns3::AddressValue(),
-            ns3::MakeAddressAccessor(&RpcServerApplication::m_local),
-            ns3::MakeAddressChecker())
+            ns3::PointerValue(),
+            ns3::MakePointerAccessor(&RpcServerApplication::m_local),
+            ns3::MakePointerChecker<ns3::Node>())
         .AddAttribute("LimitRate",
             "The Limit Rate of the Local Node.",
             ns3::UintegerValue(1000),
@@ -91,7 +91,7 @@ void RpcServerApplication::HandleRead(ns3::Ptr<ns3::Socket> socket)
     ns3::Ptr<ns3::Packet> packet;
     ns3::Address from;
     ns3::Address localAddress;
-    while (packet = socket->RecvFrom(from))
+    while (packet = socket->RecvFrom(14, 0, from))
     {
         uint64_t value1 = m_limitRate;
         uint64_t value2 = m_inputRate;

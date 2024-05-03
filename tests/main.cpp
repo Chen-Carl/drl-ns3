@@ -8,12 +8,22 @@
 #include <ns3/on-off-helper.h>
 
 #include "config.h"
+#include "rpc-server-helper.h"
+#include "rpc-client-helper.h"
+#include "rpc-client.h"
 
 int main()
 {
     ns3::Time::SetResolution(ns3::Time::NS);
     ns3::LogComponentEnable("OnOffApplication", ns3::LOG_LEVEL_INFO);
     ns3::LogComponentEnable("PacketSink", ns3::LOG_LEVEL_INFO);
+
+    // DRL parameters
+    std::unordered_map<ns3::Ptr<ns3::Node>, int> node2idx;
+    std::array<uint64_t, NS3Config::numNodes> inputRates;
+    std::array<uint64_t, NS3Config::numNodes> limitRates;
+    std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> matrix;
+
     // 1 create topology
 
     // 1.1. create nodes: 1 switch, 10 hosts
@@ -60,6 +70,12 @@ int main()
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(hostDevices);
 
+    // 1.4 initialize limit rates and input rates
+    for (int i = 0; i < hostNodes.GetN(); i++)
+    {
+        node2idx[hostNodes.Get(i)] = i;
+    }
+
     // 2. data stream
 
     // 2.1 sending
@@ -100,6 +116,23 @@ int main()
     recvApps.Stop(ns3::Seconds(10.0));
     sendApps.Start(ns3::Seconds(1.0));
     sendApps.Stop(ns3::Seconds(10.0));
+
+    // 3. RPC server and client
+    drl::RpcClientHelper rpcClientHelper;
+    ns3::ApplicationContainer rpcClients = rpcClientHelper.Install(hostNodes);
+
+    for (int i = 0; i < hostNodes.GetN(); i++)
+    {
+        drl::RpcServerHelper rpcServerHelper;
+        rpcServerHelper.Install(hostNodes.Get(i));
+    }
+
+    for (int i = 0; i < hostNodes.GetN(); i++)
+    {
+        ns3::Ptr<drl::RpcClientApplication> rpcClient = ns3::DynamicCast<drl::RpcClientApplication>(rpcClients.Get(i));
+        ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, hostNodes.Get((i + 1) % hostNodes.GetN()));
+        ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, hostNodes.Get((i - 1) % hostNodes.GetN()));
+    }
     
     ns3::Simulator::Run();
     ns3::Simulator::Destroy();
