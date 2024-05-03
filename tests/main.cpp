@@ -15,8 +15,8 @@
 int main()
 {
     ns3::Time::SetResolution(ns3::Time::NS);
-    ns3::LogComponentEnable("OnOffApplication", ns3::LOG_LEVEL_INFO);
-    ns3::LogComponentEnable("PacketSink", ns3::LOG_LEVEL_INFO);
+    // ns3::LogComponentEnable("OnOffApplication", ns3::LOG_LEVEL_INFO);
+    // ns3::LogComponentEnable("PacketSink", ns3::LOG_LEVEL_INFO);
 
     // DRL parameters
     std::unordered_map<ns3::Ptr<ns3::Node>, int> node2idx;
@@ -71,7 +71,7 @@ int main()
     ipv4.Assign(hostDevices);
 
     // 1.4 initialize limit rates and input rates
-    for (int i = 0; i < hostNodes.GetN(); i++)
+    for (int i = 0; i < NS3Config::numNodes; i++)
     {
         node2idx[hostNodes.Get(i)] = i;
     }
@@ -99,7 +99,7 @@ int main()
     ns3::ApplicationContainer sendApps;
     ns3::ApplicationContainer recvApps;
 
-    for (int i = 0; i < hostNodes.GetN() - 1; i++)
+    for (int i = 0; i < NS3Config::numNodes; i++)
     {
         ns3::Ipv4Address ipv4Address = hostNodes.Get(i)->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal();
         ns3::AddressValue hostAddress(ns3::InetSocketAddress(ipv4Address, NS3Config::port));
@@ -112,26 +112,30 @@ int main()
         recvApps.Add(sink.Install(hostNodes.Get(i)));
     }
 
-    recvApps.Start(ns3::Seconds(0.0));
-    recvApps.Stop(ns3::Seconds(10.0));
-    sendApps.Start(ns3::Seconds(1.0));
-    sendApps.Stop(ns3::Seconds(10.0));
+    recvApps.Start(ns3::Seconds(NS3Config::startTime));
+    recvApps.Stop(ns3::Seconds(NS3Config::stopTime));
+    sendApps.Start(ns3::Seconds(NS3Config::startTime));
+    sendApps.Stop(ns3::Seconds(NS3Config::stopTime));
 
     // 3. RPC server and client
     drl::RpcClientHelper rpcClientHelper;
     ns3::ApplicationContainer rpcClients = rpcClientHelper.Install(hostNodes);
+    rpcClients.Start(ns3::Seconds(NS3Config::startTime));
+    rpcClients.Stop(ns3::Seconds(NS3Config::stopTime));
 
-    for (int i = 0; i < hostNodes.GetN(); i++)
+    for (int i = 0; i < NS3Config::numNodes; i++)
     {
         drl::RpcServerHelper rpcServerHelper;
-        rpcServerHelper.Install(hostNodes.Get(i));
+        ns3::ApplicationContainer rpcServers = rpcServerHelper.Install(hostNodes.Get(i));
+        rpcServers.Start(ns3::Seconds(NS3Config::startTime));
+        rpcServers.Stop(ns3::Seconds(NS3Config::stopTime));
     }
 
-    for (int i = 0; i < hostNodes.GetN(); i++)
+    for (int i = 0; i < 1; i++)
     {
         ns3::Ptr<drl::RpcClientApplication> rpcClient = ns3::DynamicCast<drl::RpcClientApplication>(rpcClients.Get(i));
-        ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, hostNodes.Get((i + 1) % hostNodes.GetN()));
-        ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, hostNodes.Get((i - 1) % hostNodes.GetN()));
+        ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, hostNodes.Get((i + 1) % NS3Config::numNodes));
+        ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, hostNodes.Get((i - 1 + NS3Config::numNodes) % NS3Config::numNodes));
     }
     
     ns3::Simulator::Run();

@@ -17,8 +17,8 @@ void setContinueRecord(bool cont);
 int main()
 {
     ns3::Time::SetResolution(ns3::Time::NS);
-    ns3::LogComponentEnable("OnOffApplication", ns3::LOG_LEVEL_INFO);
-    ns3::LogComponentEnable("PacketSink", ns3::LOG_LEVEL_INFO);
+    // ns3::LogComponentEnable("OnOffApplication", ns3::LOG_LEVEL_INFO);
+    // ns3::LogComponentEnable("PacketSink", ns3::LOG_LEVEL_INFO);
     ns3::LogComponentEnable("RpcClientApplication", ns3::LOG_LEVEL_INFO);
 
     // topology

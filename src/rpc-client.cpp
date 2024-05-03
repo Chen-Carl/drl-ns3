@@ -28,6 +28,7 @@ ns3::TypeId RpcClientApplication::GetTypeId()
 RpcClientApplication::RpcClientApplication() 
 { 
     logger->set_pattern("[%n] %^[%l]%$ %g:%# %v");
+    logger->set_level(spdlog::level::trace);
     SPDLOG_LOGGER_TRACE(logger, "RpcClientApplication::RpcClientApplication()");
 }
 
@@ -39,8 +40,6 @@ RpcClientApplication::~RpcClientApplication()
 void RpcClientApplication::StartApplication()
 {
     SPDLOG_LOGGER_TRACE(logger, "RpcClientApplication::StartApplication()");
-
-    m_socket = ns3::Socket::CreateSocket(GetNode(), ns3::TcpSocketFactory::GetTypeId());
 }
 
 void RpcClientApplication::StopApplication()
@@ -55,14 +54,17 @@ void RpcClientApplication::StopApplication()
 
 void RpcClientApplication::SendRpcRequest(ns3::Ptr<ns3::Node> remote)
 {
-    SPDLOG_LOGGER_TRACE(logger, "RpcClientApplication::SendRpcRequest(remote={})", remote);
+    SPDLOG_LOGGER_TRACE(logger, "{} RpcClientApplication::SendRpcRequest(remote={})", ns3::Simulator::Now().As(ns3::Time::S), remote);
 
+    m_socket = ns3::Socket::CreateSocket(GetNode(), ns3::TcpSocketFactory::GetTypeId());
     ns3::Ipv4Address remoteAddress = remote->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal();
+    ns3::Ipv4Address localAddress = m_socket->GetNode()->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal();
     m_socket->Connect(ns3::InetSocketAddress(remoteAddress, NS3Config::rpcPort));
 
     std::string msg = "Hello, server!";
     ns3::Ptr<ns3::Packet> packet = ns3::Create<ns3::Packet>(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.size());
     m_socket->Send(packet);
+    SPDLOG_LOGGER_INFO(logger, "{} rpc client {} sent {} bytes ({}) request to {}:{}", ns3::Simulator::Now().As(ns3::Time::S), m_socket->GetNode()->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), packet->GetSize(), msg, remoteAddress, NS3Config::rpcPort);
 
     m_socket->SetRecvCallback(ns3::MakeCallback(&RpcClientApplication::HandleRead, this));
 }
@@ -74,14 +76,21 @@ void RpcClientApplication::HandleRead(ns3::Ptr<ns3::Socket> socket)
     ns3::Ptr<ns3::Packet> packet;
     ns3::Address from;
     ns3::Address localAddress;
-    while (packet = socket->RecvFrom(16, 0, from))
-    {
-        uint8_t buffer[16];
-        packet->CopyData(buffer, 16);
-        uint64_t limitRate = *reinterpret_cast<uint64_t*>(buffer);
-        uint64_t inputRate = *reinterpret_cast<uint64_t*>(buffer + sizeof(uint64_t));
-        SPDLOG_LOGGER_INFO(logger, "{} rpc client received {} bytes response from {}:{}, limitRate={}, inputRate={}", ns3::Simulator::Now().As(ns3::Time::S), packet->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort(), limitRate, inputRate);
-    }
+    // while (packet = socket->RecvFrom(16, 0, from))
+    // {
+    //     uint8_t buffer[16];
+    //     packet->CopyData(buffer, 16);
+    //     uint64_t limitRate = *reinterpret_cast<uint64_t*>(buffer);
+    //     uint64_t inputRate = *reinterpret_cast<uint64_t*>(buffer + sizeof(uint64_t));
+    //     SPDLOG_LOGGER_INFO(logger, "{} rpc client received {} bytes response from {}:{}, limitRate={}, inputRate={}", ns3::Simulator::Now().As(ns3::Time::S), packet->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort(), limitRate, inputRate);
+    // }
+    packet = socket->RecvFrom(16, 0, from);
+    uint8_t buffer[16];
+    packet->CopyData(buffer, 16);
+    uint64_t limitRate = *reinterpret_cast<uint64_t*>(buffer);
+    uint64_t inputRate = *reinterpret_cast<uint64_t*>(buffer + sizeof(uint64_t));
+    SPDLOG_LOGGER_INFO(logger, "{} rpc client received {} bytes response from {}:{}, receive: limitRate={}, inputRate={}", ns3::Simulator::Now().As(ns3::Time::S), packet->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort(), limitRate, inputRate);
+    socket->Close();
 }
 
 }

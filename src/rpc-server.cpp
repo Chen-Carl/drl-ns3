@@ -43,6 +43,7 @@ ns3::TypeId RpcServerApplication::GetTypeId()
 
 RpcServerApplication::RpcServerApplication() 
 { 
+    logger->set_level(spdlog::level::trace);
     logger->set_pattern("[%n] %^[%l]%$ %g:%# %v");
     SPDLOG_LOGGER_TRACE(logger, "RpcServerApplication::RpcServerApplication()");
 }
@@ -79,7 +80,9 @@ void RpcServerApplication::StopApplication()
 
 void RpcServerApplication::HandleRpcRequest(ns3::Ptr<ns3::Socket> socket, const ns3::Address &from)
 {
-    SPDLOG_LOGGER_TRACE(logger, "RpcServerApplication::HandleRpcRequest(socket, {})", from);
+    ns3::Ipv4Address address = ns3::InetSocketAddress::ConvertFrom(from).GetIpv4();
+    uint16_t port = ns3::InetSocketAddress::ConvertFrom(from).GetPort();
+    SPDLOG_LOGGER_TRACE(logger, "RpcServerApplication::HandleRpcRequest(socket, {}:{})", address, port);
 
     socket->SetRecvCallback(ns3::MakeCallback(&RpcServerApplication::HandleRead, this));
 }
@@ -95,10 +98,12 @@ void RpcServerApplication::HandleRead(ns3::Ptr<ns3::Socket> socket)
     {
         uint64_t value1 = m_limitRate;
         uint64_t value2 = m_inputRate;
-        SPDLOG_LOGGER_INFO(logger, "{} rpc server received {} bytes request from {}:{}, limitRate={}, inputRate={}", ns3::Simulator::Now().As(ns3::Time::S), packet->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort(), value1, value2);
+        SPDLOG_LOGGER_INFO(logger, "{} rpc server {} received {} bytes request from {}:{}, response: limitRate={}, inputRate={}", ns3::Simulator::Now().As(ns3::Time::S), m_local->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), packet->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort(), value1, value2);
         ns3::Ptr<ns3::Packet> response = ns3::Create<ns3::Packet>((uint8_t*)&value1, sizeof(uint64_t));
         response->AddAtEnd(ns3::Create<ns3::Packet>((uint8_t*)&value2, sizeof(uint64_t)));
+
         socket->Send(response);
+        SPDLOG_LOGGER_INFO(logger, "{} rpc server {} sent {} bytes response to {}:{}", ns3::Simulator::Now().As(ns3::Time::S), m_local->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), response->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort());
     }
 }
 

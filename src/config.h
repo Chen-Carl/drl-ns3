@@ -24,6 +24,10 @@ public:
     static constexpr int windowSize = 100;          // ms
     static constexpr int totalWindows = 100;        // total 100 * 100 ms
 
+    // simulation settings
+    static constexpr int startTime = 0;
+    static constexpr int stopTime = 10;
+
     // rpc settings
     static constexpr int rpcPort = 9090;
 
