@@ -2,7 +2,10 @@
 
 #include <string>
 #include <array>
+#include <unordered_map>
 #include <cstdint>
+
+#include <ns3/node.h>
 
 class NS3Config
 {
@@ -32,4 +35,7 @@ public:
     static constexpr int rpcPort = 9090;
 
     static std::array<int, numNodes> onoffDataRates;
+    static std::array<double, numNodes> limitRates;
+
+    static std::unordered_map<ns3::Ptr<ns3::Node>, int> node2idx;
 };

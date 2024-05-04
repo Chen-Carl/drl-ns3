@@ -6,7 +6,7 @@ include(FetchContent)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # SET FLAGS
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb")
 
 if(CMAKE_CXX_COMPILER)
     message("system C++ compiler: ${CMAKE_CXX_COMPILER}")
@@ -63,29 +63,36 @@ set(NS3_LIBS
 
 # =============== executable ===============
 
-add_executable(testSpdlog tests/testSpdlog.cpp)
-target_link_libraries(testSpdlog PRIVATE spdlog::spdlog)
-
-add_executable(testNs3 tests/testNs3.cpp)
-target_link_libraries(testNs3 PRIVATE ${NS3_LIBS})
-
-add_executable(testRateLimiter 
-    tests/testRateLimiter.cpp 
+set(NS3_SRC
+    src/markov.cpp
     src/config.cpp 
     src/rpc-server.cpp
     src/rpc-server-helper.cpp
     src/rpc-client.cpp
     src/rpc-client-helper.cpp
 )
+
+add_executable(testSpdlog tests/testSpdlog.cpp)
+target_link_libraries(testSpdlog PRIVATE spdlog::spdlog)
+
+add_executable(testNs3 tests/testNs3.cpp)
+target_link_libraries(testNs3 PRIVATE ${NS3_LIBS})
+
+add_executable(testMarkov 
+    tests/testMarkov.cpp
+    src/markov.cpp
+)
+target_link_libraries(testMarkov PRIVATE ${NS3_LIBS})
+
+add_executable(testRateLimiter 
+    tests/testRateLimiter.cpp 
+    ${NS3_SRC}
+)
 target_link_libraries(testRateLimiter PRIVATE spdlog::spdlog ${NS3_LIBS})
 
 add_executable(main 
     tests/main.cpp 
-    src/config.cpp 
-    src/rpc-server.cpp
-    src/rpc-server-helper.cpp
-    src/rpc-client.cpp
-    src/rpc-client-helper.cpp
+    ${NS3_SRC}
 )
 target_link_libraries(main PRIVATE ${NS3_LIBS})
 

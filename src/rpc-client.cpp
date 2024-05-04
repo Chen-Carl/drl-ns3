@@ -76,21 +76,18 @@ void RpcClientApplication::HandleRead(ns3::Ptr<ns3::Socket> socket)
     ns3::Ptr<ns3::Packet> packet;
     ns3::Address from;
     ns3::Address localAddress;
-    // while (packet = socket->RecvFrom(16, 0, from))
-    // {
-    //     uint8_t buffer[16];
-    //     packet->CopyData(buffer, 16);
-    //     uint64_t limitRate = *reinterpret_cast<uint64_t*>(buffer);
-    //     uint64_t inputRate = *reinterpret_cast<uint64_t*>(buffer + sizeof(uint64_t));
-    //     SPDLOG_LOGGER_INFO(logger, "{} rpc client received {} bytes response from {}:{}, limitRate={}, inputRate={}", ns3::Simulator::Now().As(ns3::Time::S), packet->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort(), limitRate, inputRate);
-    // }
-    packet = socket->RecvFrom(16, 0, from);
-    uint8_t buffer[16];
-    packet->CopyData(buffer, 16);
-    uint64_t limitRate = *reinterpret_cast<uint64_t*>(buffer);
-    uint64_t inputRate = *reinterpret_cast<uint64_t*>(buffer + sizeof(uint64_t));
+    packet = socket->RecvFrom(sizeof(double) * 2, 0, from);
+    std::vector<uint8_t> buffer;
+    buffer.resize(packet->GetSize());
+    packet->CopyData(buffer.data(), buffer.size());
+    double limitRate = *reinterpret_cast<double*>(buffer.data());
+    double inputRate = *reinterpret_cast<double*>(buffer.data() + sizeof(double));
     SPDLOG_LOGGER_INFO(logger, "{} rpc client received {} bytes response from {}:{}, receive: limitRate={}, inputRate={}", ns3::Simulator::Now().As(ns3::Time::S), packet->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort(), limitRate, inputRate);
     socket->Close();
+
+    // Set limit rate
+    int idx = NS3Config::node2idx[socket->GetNode()];
+    m_limitRate += limitRate * m_matrix[idx];
 }
 
 }

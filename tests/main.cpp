@@ -18,17 +18,16 @@ int main()
     // ns3::LogComponentEnable("OnOffApplication", ns3::LOG_LEVEL_INFO);
     // ns3::LogComponentEnable("PacketSink", ns3::LOG_LEVEL_INFO);
 
-    // DRL parameters
-    std::unordered_map<ns3::Ptr<ns3::Node>, int> node2idx;
-    std::array<uint64_t, NS3Config::numNodes> inputRates;
-    std::array<uint64_t, NS3Config::numNodes> limitRates;
-    std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> matrix;
-
     // 1 create topology
 
     // 1.1. create nodes: 1 switch, 10 hosts
     ns3::NodeContainer hostNodes;
     hostNodes.Create(NS3Config::numNodes + 1);
+
+    for (int i = 0; i < NS3Config::numNodes; i++)
+    {
+        NS3Config::node2idx[hostNodes.Get(i)] = i;
+    }
 
     ns3::NodeContainer switchNodes;
     switchNodes.Create(1);
@@ -69,12 +68,6 @@ int main()
     ns3::Ipv4AddressHelper ipv4;
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(hostDevices);
-
-    // 1.4 initialize limit rates and input rates
-    for (int i = 0; i < NS3Config::numNodes; i++)
-    {
-        node2idx[hostNodes.Get(i)] = i;
-    }
 
     // 2. data stream
 
@@ -118,11 +111,20 @@ int main()
     sendApps.Stop(ns3::Seconds(NS3Config::stopTime));
 
     // 3. RPC server and client
+
+    // 3.1 RPC clients
     drl::RpcClientHelper rpcClientHelper;
     ns3::ApplicationContainer rpcClients = rpcClientHelper.Install(hostNodes);
+    for (int i = 0; i < NS3Config::numNodes; i++)
+    {
+        ns3::Ptr<drl::RpcClientApplication> rpcClient = ns3::DynamicCast<drl::RpcClientApplication>(rpcClients.Get(i));
+        rpcClient->SetInputRate(NS3Config::onoffDataRates[i]);
+        rpcClient->SetLimitRate(NS3Config::limitRates[i]);
+    }
     rpcClients.Start(ns3::Seconds(NS3Config::startTime));
     rpcClients.Stop(ns3::Seconds(NS3Config::stopTime));
 
+    // 3.2 RPC servers
     for (int i = 0; i < NS3Config::numNodes; i++)
     {
         drl::RpcServerHelper rpcServerHelper;
@@ -131,7 +133,8 @@ int main()
         rpcServers.Stop(ns3::Seconds(NS3Config::stopTime));
     }
 
-    for (int i = 0; i < 1; i++)
+    // 4. Iteration
+    for (int i = 0; i < NS3Config::numNodes; i++)
     {
         ns3::Ptr<drl::RpcClientApplication> rpcClient = ns3::DynamicCast<drl::RpcClientApplication>(rpcClients.Get(i));
         ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, hostNodes.Get((i + 1) % NS3Config::numNodes));
