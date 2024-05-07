@@ -11,6 +11,7 @@
 #include "rpc-server-helper.h"
 #include "rpc-client-helper.h"
 #include "rpc-client.h"
+#include "drl-node.h"
 
 int main()
 {
@@ -22,7 +23,15 @@ int main()
 
     // 1.1. create nodes: 1 switch, 10 hosts
     ns3::NodeContainer hostNodes;
-    hostNodes.Create(NS3Config::numNodes + 1);
+    // hostNodes.SetNodeTypeId(drl::DrlNode::GetTypeId());
+    // hostNodes.Create(NS3Config::numNodes + 1);
+    for (int i = 0; i < NS3Config::numNodes; i++)
+    {
+        ns3::Ptr<drl::DrlNode> drlNode = ns3::CreateObject<drl::DrlNode>();
+        hostNodes.Add(drlNode);
+    }
+    ns3::Ptr<ns3::Node> sendNode = ns3::CreateObject<ns3::Node>();
+    hostNodes.Add(sendNode);
 
     for (int i = 0; i < NS3Config::numNodes; i++)
     {
@@ -68,6 +77,12 @@ int main()
     ns3::Ipv4AddressHelper ipv4;
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(hostDevices);
+
+    for (int i = 0; i < NS3Config::numNodes; i++)
+    {
+        ns3::Ipv4Address ipv4Address = hostNodes.Get(i)->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal();
+        NS3Config::ip2idx[ipv4Address] = i;
+    }
 
     // 2. data stream
 

@@ -18,9 +18,9 @@ double MarkovAlgorithm::GenerateRandomNumber(double min, double max)
     return dis(gen);
 }
 
-MarkovAlgorithm::Matrix MarkovAlgorithm::GenerateStochasticMatrix()
+std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> MarkovAlgorithm::GenerateStochasticMatrix()
 {
-    Matrix res;
+    std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> res;
     for (int i = 0; i < NS3Config::numNodes; i++)
     {
         double sum = 0;
@@ -37,35 +37,12 @@ MarkovAlgorithm::Matrix MarkovAlgorithm::GenerateStochasticMatrix()
     return res;
 }
 
-
-std::ostream &operator<<(std::ostream &os, const MarkovAlgorithm::Matrix &matrix)
+std::array<double, NS3Config::numNodes> MarkovAlgorithm::GetMatrixCol(const std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> &matrix, int col)
 {
-    os << "[";
+    std::array<double, NS3Config::numNodes> res;
     for (int i = 0; i < NS3Config::numNodes; i++)
     {
-        if (i != 0)
-        {
-            os << " ";
-        }
-        for (int j = 0; j < NS3Config::numNodes; j++)
-        {
-            if (j != NS3Config::numNodes - 1)
-            {
-                os << matrix[i][j] << ", ";
-            }
-            else
-            {
-                os << matrix[i][j];
-            }
-        }
-        if (i != NS3Config::numNodes - 1)
-        {
-            os << std::endl;
-        }
-        else
-        {
-            os << "]";
-        }
+        res[i] = matrix[i][col];
     }
-    return os;
+    return res;
 }

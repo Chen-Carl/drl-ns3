@@ -91,12 +91,12 @@ void RpcServerApplication::HandleRead(ns3::Ptr<ns3::Socket> socket)
         ns3::Ptr<RpcClientApplication> client = app->GetObject<RpcClientApplication>();
         double value1 = client->GetLimitRate();
         double value2 = client->GetInputRate();
-        SPDLOG_LOGGER_INFO(logger, "{} rpc server {} received {} bytes request from {}:{}, response: limitRate={}, inputRate={}", ns3::Simulator::Now().As(ns3::Time::S), m_local->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), packet->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort(), value1, value2);
+        SPDLOG_LOGGER_DEBUG(logger, "{} rpc server {} received {} bytes request from {}:{}, response: limitRate={}, inputRate={}", ns3::Simulator::Now().As(ns3::Time::S), m_local->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), packet->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort(), value1, value2);
         ns3::Ptr<ns3::Packet> response = ns3::Create<ns3::Packet>((uint8_t*)&value1, sizeof(double));
         response->AddAtEnd(ns3::Create<ns3::Packet>((uint8_t*)&value2, sizeof(double)));
 
         socket->Send(response);
-        SPDLOG_LOGGER_INFO(logger, "{} rpc server {} sent {} bytes response to {}:{}", ns3::Simulator::Now().As(ns3::Time::S), m_local->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), response->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort());
+        SPDLOG_LOGGER_DEBUG(logger, "{} rpc server {} sent {} bytes response to {}:{}", ns3::Simulator::Now().As(ns3::Time::S), m_local->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), response->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort());
     }
 }
 

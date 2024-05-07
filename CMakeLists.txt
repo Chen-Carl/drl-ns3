@@ -70,6 +70,7 @@ set(NS3_SRC
     src/rpc-server-helper.cpp
     src/rpc-client.cpp
     src/rpc-client-helper.cpp
+    src/drl-node.cpp
 )
 
 add_executable(testSpdlog tests/testSpdlog.cpp)

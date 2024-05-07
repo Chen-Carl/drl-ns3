@@ -10,6 +10,6 @@ int main()
 
 void testStochasticMatrix()
 {
-    MarkovAlgorithm::Matrix matrix = MarkovAlgorithm::GenerateStochasticMatrix();
+    std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> matrix = MarkovAlgorithm::GenerateStochasticMatrix();
     std::cout << matrix << std::endl;
 }

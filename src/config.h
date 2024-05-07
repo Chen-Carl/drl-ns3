@@ -7,10 +7,18 @@
 
 #include <ns3/node.h>
 
+struct Ipv4AddressHash
+{
+    std::size_t operator()(const ns3::Ipv4Address &ipv4) const
+    {
+        return std::hash<uint32_t>()(ipv4.Get());
+    }
+};
+
 class NS3Config
 {
 public:
-    static constexpr int numNodes = 10;
+    static constexpr int numNodes = 2;
     static constexpr uint16_t port = 9;
 
     // csma channel settings
@@ -34,8 +42,15 @@ public:
     // rpc settings
     static constexpr int rpcPort = 9090;
 
-    static std::array<int, numNodes> onoffDataRates;
+    static std::array<double, numNodes> onoffDataRates;
     static std::array<double, numNodes> limitRates;
 
     static std::unordered_map<ns3::Ptr<ns3::Node>, int> node2idx;
+    static std::unordered_map<ns3::Ipv4Address, int, Ipv4AddressHash> ip2idx;
+
+    static std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> matrix;
+
+    static std::array<double, NS3Config::numNodes> InitOnoffDataRates();
+
+    static std::array<double, NS3Config::numNodes> InitLimitRates();
 };
