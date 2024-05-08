@@ -12,9 +12,14 @@
 #include "rpc-client-helper.h"
 #include "rpc-client.h"
 #include "drl-node.h"
+#include "markov.h"
 
 int main()
 {
+    // std::cout << NS3Config::matrix << std::endl;
+    // NS3Config::matrix[0] = { 0.163081, 0.756984, 0.079935 };
+    // NS3Config::matrix[1] = { 0.957199, 0.024924, 0.0178774 };
+    // NS3Config::matrix[2] = { 0.215504, 0.516418, 0.268078 };
     ns3::Time::SetResolution(ns3::Time::NS);
     // ns3::LogComponentEnable("OnOffApplication", ns3::LOG_LEVEL_INFO);
     // ns3::LogComponentEnable("PacketSink", ns3::LOG_LEVEL_INFO);
@@ -28,15 +33,11 @@ int main()
     for (int i = 0; i < NS3Config::numNodes; i++)
     {
         ns3::Ptr<drl::DrlNode> drlNode = ns3::CreateObject<drl::DrlNode>();
+        drlNode->SetInputRate(NS3Config::onoffDataRates[i]);
         hostNodes.Add(drlNode);
     }
     ns3::Ptr<ns3::Node> sendNode = ns3::CreateObject<ns3::Node>();
     hostNodes.Add(sendNode);
-
-    for (int i = 0; i < NS3Config::numNodes; i++)
-    {
-        NS3Config::node2idx[hostNodes.Get(i)] = i;
-    }
 
     ns3::NodeContainer switchNodes;
     switchNodes.Create(1);
@@ -152,8 +153,8 @@ int main()
     for (int i = 0; i < NS3Config::numNodes; i++)
     {
         ns3::Ptr<drl::RpcClientApplication> rpcClient = ns3::DynamicCast<drl::RpcClientApplication>(rpcClients.Get(i));
-        ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, hostNodes.Get((i + 1) % NS3Config::numNodes));
-        ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, hostNodes.Get((i - 1 + NS3Config::numNodes) % NS3Config::numNodes));
+        ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::ScheduleSendRpcRequest, rpcClient, 0, hostNodes);
+        ns3::Simulator::Schedule(ns3::Seconds(6), &drl::RpcClientApplication::ScheduleSendRpcRequest, rpcClient, 1, hostNodes);
     }
     
     ns3::Simulator::Run();

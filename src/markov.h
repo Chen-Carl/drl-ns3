@@ -12,6 +12,8 @@ public:
 
     static std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> GenerateStochasticMatrix();
 
+    static std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> GenerateCycleStochasticMatrix();
+
     static std::array<double, NS3Config::numNodes> GetMatrixCol(const std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> &matrix, int col);
 };
 
@@ -21,10 +23,7 @@ std::ostream &operator<<(std::ostream &os, const std::array<std::array<T, N>, N>
     os << "[";
     for (int i = 0; i < N; i++)
     {
-        if (i != 0)
-        {
-            os << " ";
-        }
+        os << "[";
         for (int j = 0; j < N; j++)
         {
             if (j != N - 1)
@@ -33,18 +32,15 @@ std::ostream &operator<<(std::ostream &os, const std::array<std::array<T, N>, N>
             }
             else
             {
-                os << matrix[i][j];
+                os << matrix[i][j] << "]";
             }
         }
         if (i != N - 1)
         {
-            os << std::endl;
-        }
-        else
-        {
-            os << "]";
+            os << ", " << std::endl;
         }
     }
+    os << "]";
     return os;
 }
 

@@ -19,7 +19,11 @@ public:
     virtual void StartApplication() override;
     virtual void StopApplication() override;
 
-    void SendRpcRequest(ns3::Ptr<ns3::Node> remote);
+    // msgId = 0: request for updating input rate
+    // msgId = 1: request for updating limit rate
+    void SendRpcRequest(ns3::Ptr<ns3::Node> remote, int msgId);
+
+    void ScheduleSendRpcRequest(int msgId, ns3::NodeContainer hostNodes);
 
     double GetInputRate() const { return m_inputRate; }
     double GetLimitRate() const { return m_limitRate; }
@@ -37,6 +41,9 @@ private:
     std::array<double, NS3Config::numNodes> m_matrix;
 
     void HandleRead(ns3::Ptr<ns3::Socket> socket);
+
+    void UpdateInputRate(double inputRate, double limitRate, int other);
+    void UpdateLimitRate(double inputRate, double limitRate, int other);
 };
 
 }

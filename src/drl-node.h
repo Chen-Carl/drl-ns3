@@ -22,10 +22,11 @@ public:
     void SetProcess(int process) { m_process = process; }
 
 private:
-    double m_limitRate = 0;
-    double m_inputRate = 0;
+    double m_limitRate;
+    double m_inputRate;
     int m_iteration = 0;
     int m_process = 0;
+    int m_status = 0;   // 0: update input rate, 1: update limit rate
 };
 
 }

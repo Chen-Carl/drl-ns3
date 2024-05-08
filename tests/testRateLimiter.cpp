@@ -85,7 +85,7 @@ int main()
 
     ns3::Ptr<drl::RpcClientApplication> rpcClient = ns3::DynamicCast<drl::RpcClientApplication>(rpcClients.Get(0));
 
-    ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, nodes.Get(1));
+    ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, nodes.Get(1), 1);
 
     ns3::Ptr<ns3::PacketSink> sinkApp = ns3::DynamicCast<ns3::PacketSink>(recvApps.Get(0));
 

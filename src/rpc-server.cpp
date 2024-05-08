@@ -85,15 +85,19 @@ void RpcServerApplication::HandleRead(ns3::Ptr<ns3::Socket> socket)
     ns3::Ptr<ns3::Packet> packet;
     ns3::Address from;
     ns3::Address localAddress;
-    while (packet = socket->RecvFrom(14, 0, from))
+    while (packet = socket->RecvFrom(2, 0, from))
     {
         ns3::Ptr<ns3::Application> app = m_local->GetApplication(1);
         ns3::Ptr<RpcClientApplication> client = app->GetObject<RpcClientApplication>();
-        double value1 = client->GetLimitRate();
-        double value2 = client->GetInputRate();
-        SPDLOG_LOGGER_DEBUG(logger, "{} rpc server {} received {} bytes request from {}:{}, response: limitRate={}, inputRate={}", ns3::Simulator::Now().As(ns3::Time::S), m_local->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), packet->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort(), value1, value2);
-        ns3::Ptr<ns3::Packet> response = ns3::Create<ns3::Packet>((uint8_t*)&value1, sizeof(double));
-        response->AddAtEnd(ns3::Create<ns3::Packet>((uint8_t*)&value2, sizeof(double)));
+        ns3::DoubleValue limitRateValue;
+        ns3::DoubleValue inputRateValue;
+        GetNode()->GetAttribute("LimitRate", limitRateValue);
+        GetNode()->GetAttribute("InputRate", inputRateValue);
+        double limitRate = limitRateValue.Get();
+        double inputRate = inputRateValue.Get();
+        SPDLOG_LOGGER_DEBUG(logger, "{} rpc server {} received {} bytes request from {}:{}, response: limitRate={}, inputRate={}", ns3::Simulator::Now().As(ns3::Time::S), m_local->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), packet->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort(), limitRate, inputRate);
+        ns3::Ptr<ns3::Packet> response = ns3::Create<ns3::Packet>((uint8_t*)&limitRate, sizeof(double));
+        response->AddAtEnd(ns3::Create<ns3::Packet>((uint8_t*)&inputRate, sizeof(double)));
 
         socket->Send(response);
         SPDLOG_LOGGER_DEBUG(logger, "{} rpc server {} sent {} bytes response to {}:{}", ns3::Simulator::Now().As(ns3::Time::S), m_local->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), response->GetSize(), ns3::InetSocketAddress::ConvertFrom(from).GetIpv4(), ns3::InetSocketAddress::ConvertFrom(from).GetPort());

@@ -5,9 +5,8 @@ std::array<double, NS3Config::numNodes> NS3Config::onoffDataRates = NS3Config::I
 
 std::array<double, NS3Config::numNodes> NS3Config::limitRates = NS3Config::InitLimitRates();
 
-std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> NS3Config::matrix = MarkovAlgorithm::GenerateStochasticMatrix();
+std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> NS3Config::matrix = MarkovAlgorithm::GenerateCycleStochasticMatrix();
 
-std::unordered_map<ns3::Ptr<ns3::Node>, int> NS3Config::node2idx;
 std::unordered_map<ns3::Ipv4Address, int, Ipv4AddressHash> NS3Config::ip2idx;
 
 std::array<double, NS3Config::numNodes> NS3Config::InitOnoffDataRates()
