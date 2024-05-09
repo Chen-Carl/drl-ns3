@@ -1,5 +1,7 @@
 #include "trace.h"
 
+#include "formatter.h"
+
 #include <format>
 
 #include <ns3/core-module.h>
@@ -50,9 +52,10 @@ void Checker::CheckTotalRate(ns3::NodeContainer hostNodes, uint64_t ts)
         for (int i = 0; i < NS3Config::numNodes; i++)
         {
             std::string filename = std::format("{}.{}.txt", i, ts);
-            if (std::filesystem::exists(NS3Config::traceDir + "/limit-rate/" + filename))
+            std::string fullname = NS3Config::traceDir + "/limit-rate/" + filename;
+            if (std::filesystem::exists(fullname))
             {
-                std::filesystem::remove(filename);
+                std::filesystem::remove(fullname);
             }
         }
         throw std::runtime_error("Total rate error!");

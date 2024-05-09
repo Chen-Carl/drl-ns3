@@ -2,33 +2,28 @@
 
 ## 1 System Prerequisites
 
-### NS-3 Simulator
+### 1.1 NS-3 Simulator
 
 The simulator uses `PkgConfig` to load NS-3 libraries.
 
+### 1.2 spdlog
 
-## 2 RPC Model
+CMake will automatically download the [spdlog repository](https://github.com/gabime/spdlog.git) to `build/_deps`.
 
-### Install
+### 1.3 Build
 
-Install an RpcClientApplication on node 0.
+First, modify lines 43 and 45 to specify the ns-3 include path and pkgconfig path.
 
-``` cpp
-drl::RpcClientHelper rpcClientHelper;
-ns3::ApplicationContainer rpcClients = rpcClientHelper.Install(nodes.Get(0));
+Second, export `CXX_COMPILER_PATH` to specify the C++ compiler that supports C++ 20.
+
+``` bash
+mkdir build && cd build
+cmake ..
+make
 ```
 
-Install an RpcServerApplication on node 1. RpcServerApplication binds a local address.
-
-``` cpp
-ns3::Ipv4Address nodeAddress = nodes.Get(0)->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal();   // get ipv4 address of node 0
-drl::RpcServerHelper rpcServerHelper(nodeAddress);  // create application with helper
-ns3::ApplicationContainer rpcServers = rpcServerHelper.Install(nodes.Get(0));   // install application on node 0
+`bin` is the execution output folder. Run
+``` bash
+../bin/main
 ```
-
-### Send RPC Request
-
-``` cpp
-ns3::Ptr<drl::RpcClientApplication> rpcClient = ns3::DynamicCast<drl::RpcClientApplication>(rpcClients.Get(0));
-ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::SendRpcRequest, rpcClient, nodes.Get(1));
-```
+to start the network simulation.

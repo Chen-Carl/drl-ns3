@@ -26,10 +26,13 @@ private:
 template <typename T>
 void TraceValue(std::string context, T oldValue, T newValue)
 {
-    std::cout << "tracer: writing to file ... " << std::endl;
     std::ofstream file;
     std::string filename = std::format("{}/limit-rate/{}.txt", NS3Config::traceDir, context);
     file.open(filename, std::ios::app);
+    if (file.tellp() == 0)
+    {
+        file << 1.0 / NS3Config::numNodes << std::endl;
+    }
     file << newValue << std::endl;
     file.close();
 }
