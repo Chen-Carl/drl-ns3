@@ -13,9 +13,14 @@
 #include "rpc-client.h"
 #include "drl-node.h"
 #include "markov.h"
+#include "trace.h"
 
 int main()
 {
+    // 0. clear files
+    // ClearDirectoryContents(NS3Config::traceDir + "/limit-rate");
+    uint64_t ts = GetCurrentTs();
+
     // std::cout << NS3Config::matrix << std::endl;
     // NS3Config::matrix[0] = { 0.163081, 0.756984, 0.079935 };
     // NS3Config::matrix[1] = { 0.957199, 0.024924, 0.0178774 };
@@ -41,6 +46,12 @@ int main()
 
     ns3::NodeContainer switchNodes;
     switchNodes.Create(1);
+
+    // add tracer
+    for (int i = 0; i < NS3Config::numNodes; i++)
+    {
+        hostNodes.Get(i)->TraceConnect("LimitRateTracer", std::to_string(i) + "." + std::to_string(ts), ns3::MakeCallback(&TraceValue<double>));
+    }
 
     ns3::CsmaHelper csma;
     csma.SetChannelAttribute("DataRate", ns3::DataRateValue(NS3Config::csmaDataRate));
@@ -131,6 +142,7 @@ int main()
     // 3.1 RPC clients
     drl::RpcClientHelper rpcClientHelper;
     ns3::ApplicationContainer rpcClients = rpcClientHelper.Install(hostNodes);
+
     for (int i = 0; i < NS3Config::numNodes; i++)
     {
         ns3::Ptr<drl::RpcClientApplication> rpcClient = ns3::DynamicCast<drl::RpcClientApplication>(rpcClients.Get(i));
@@ -153,8 +165,12 @@ int main()
     for (int i = 0; i < NS3Config::numNodes; i++)
     {
         ns3::Ptr<drl::RpcClientApplication> rpcClient = ns3::DynamicCast<drl::RpcClientApplication>(rpcClients.Get(i));
-        ns3::Simulator::Schedule(ns3::Seconds(5), &drl::RpcClientApplication::ScheduleSendRpcRequest, rpcClient, 0, hostNodes);
-        ns3::Simulator::Schedule(ns3::Seconds(6), &drl::RpcClientApplication::ScheduleSendRpcRequest, rpcClient, 1, hostNodes);
+        ns3::Simulator::Schedule(ns3::Seconds(0), &drl::RpcClientApplication::ScheduleSendRpcRequest, rpcClient, 0, hostNodes);
+        for (int t = 1; t < NS3Config::iterationNum; t++)
+        {
+            ns3::Simulator::Schedule(ns3::Seconds(t), &drl::RpcClientApplication::ScheduleSendRpcRequest, rpcClient, 1, hostNodes);
+            ns3::Simulator::Schedule(ns3::Seconds(t), &Checker::CheckTotalRate, hostNodes, ts);
+        }
     }
     
     ns3::Simulator::Run();

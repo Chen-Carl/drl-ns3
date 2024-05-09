@@ -103,7 +103,6 @@ void RpcClientApplication::ScheduleSendRpcRequest(int msgId, ns3::NodeContainer 
     ns3::IntegerValue iteration;
     GetNode()->GetAttribute("Iteration", iteration);
     GetNode()->SetAttribute("Iteration", ns3::IntegerValue(iteration.Get() + 1));
-    std::cout << "iteration = " << iteration.Get() << std::endl;
     ns3::DoubleValue inputRateValue;
     GetNode()->GetAttribute("InputRate", inputRateValue);
     m_limitRate = 0;

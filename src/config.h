@@ -18,7 +18,7 @@ struct Ipv4AddressHash
 class NS3Config
 {
 public:
-    static constexpr int numNodes = 10;
+    static constexpr int numNodes = 3;
     static constexpr int numNeighbours = (numNodes == 2 ? 1 : 2);
     static constexpr uint16_t port = 9;
 
@@ -37,8 +37,10 @@ public:
     static constexpr int totalWindows = 100;        // total 100 * 100 ms
 
     // simulation settings
+    static constexpr int iterationTime = 1;
+    static constexpr int iterationNum = 100;
     static constexpr int startTime = 0;
-    static constexpr int stopTime = 10;
+    static constexpr int stopTime = iterationTime * (iterationNum + 2);
 
     // rpc settings
     static constexpr int rpcPort = 9090;
@@ -49,6 +51,8 @@ public:
     static std::unordered_map<ns3::Ipv4Address, int, Ipv4AddressHash> ip2idx;
 
     static std::array<std::array<double, NS3Config::numNodes>, NS3Config::numNodes> matrix;
+
+    static std::string traceDir;
 
     static std::array<double, NS3Config::numNodes> InitOnoffDataRates();
 

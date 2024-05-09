@@ -16,7 +16,8 @@ ns3::TypeId DrlNode::GetTypeId()
         .AddAttribute("InputRate", "The input rate of the node.", ns3::DoubleValue(0.0), ns3::MakeDoubleAccessor(&DrlNode::m_inputRate), ns3::MakeDoubleChecker<double>())
         .AddAttribute("Iteration", "The iteration of the DRL Algorithm.", ns3::IntegerValue(0), ns3::MakeIntegerAccessor(&DrlNode::m_iteration), ns3::MakeIntegerChecker<int>())
         .AddAttribute("Process", "The processed neighbour nodes of the current iteration.", ns3::IntegerValue(0), ns3::MakeIntegerAccessor(&DrlNode::m_process), ns3::MakeIntegerChecker<int>())
-        .AddAttribute("Status", "The status of the node.", ns3::IntegerValue(0), ns3::MakeIntegerAccessor(&DrlNode::m_status), ns3::MakeIntegerChecker<int>());
+        .AddAttribute("Status", "The status of the node.", ns3::IntegerValue(0), ns3::MakeIntegerAccessor(&DrlNode::m_status), ns3::MakeIntegerChecker<int>())
+        .AddTraceSource("LimitRateTracer", "The limit rate of the node.", ns3::MakeTraceSourceAccessor(&DrlNode::m_limitRate), "ns3::TracedValueCallback::Double");
     return tid;
 }
 
