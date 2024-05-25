@@ -6,7 +6,7 @@ include(FetchContent)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # SET FLAGS
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 
 if(CMAKE_CXX_COMPILER)
     message("system C++ compiler: ${CMAKE_CXX_COMPILER}")

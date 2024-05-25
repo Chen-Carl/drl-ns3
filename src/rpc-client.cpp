@@ -2,6 +2,7 @@
 #include "rpc-client.h"
 #include "config.h"
 #include "markov.h"
+#include "trace.h"
 
 #include <ns3/socket.h>
 #include <ns3/ipv4.h>
@@ -193,5 +194,35 @@ void RpcClientApplication::UpdateLimitRate(double inputRate, double limitRate, i
         SPDLOG_LOGGER_INFO(logger, "{} [iteration={}] rpc client {} updates limit rate to {}", ns3::Simulator::Now().As(ns3::Time::S), iteration.Get(), GetNode()->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), m_limitRate);
     }
 }
+
+void RpcClientApplication::C3PUpdateInputRate(double inputRate, double limitRate, int other)
+{
+    int self = GetNode()->GetId();
+    m_matrix[other] = NS3Config::c3pEta / m_inputRate;
+    m_matrix[self] = 1 - NS3Config::c3pEta / inputRate * (NS3Config::numNodes - 1);
+}
+
+void RpcClientApplication::C3PUpdateLimitRate(double inputRate, double limitRate, int other)
+{
+    ns3::IntegerValue iteration;
+    GetNode()->GetAttribute("Iteration", iteration);
+    int self = GetNode()->GetId();
+    m_limitRate += m_matrix[other] * limitRate;
+    SPDLOG_LOGGER_DEBUG(logger, "{} [iteration={}] rpc client {} updates limit rate to {}", ns3::Simulator::Now().As(ns3::Time::S), iteration.Get(), m_socket->GetNode()->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), m_limitRate);
+    ns3::IntegerValue process;
+    GetNode()->GetAttribute("Process", process);
+    if (process.Get() == NS3Config::numNeighbours)
+    {
+        ns3::DoubleValue lastLimitRateValue;
+        GetNode()->GetAttribute("LimitRate", lastLimitRateValue);
+        m_limitRate += m_matrix[self] * lastLimitRateValue.Get();
+        ns3::DoubleValue limitRateValue(m_limitRate);
+        GetNode()->SetAttribute("LimitRate", limitRateValue);
+        ns3::IntegerValue iteration;
+        GetNode()->GetAttribute("Iteration", iteration);
+        SPDLOG_LOGGER_INFO(logger, "{} [iteration={}] rpc client {} updates limit rate to {}", ns3::Simulator::Now().As(ns3::Time::S), iteration.Get(), GetNode()->GetObject<ns3::Ipv4>()->GetAddress(1, 0).GetLocal(), m_limitRate);
+    }
+}
+
 
 }

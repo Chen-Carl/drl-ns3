@@ -1,8 +1,10 @@
 #include "trace.h"
 
 #include "formatter.h"
+#include "rpc-client.h"
 
 #include <format>
+#include <ranges>
 
 #include <ns3/core-module.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -41,18 +43,46 @@ double Checker::TraceTotalRate(ns3::NodeContainer hostNodes)
     return totalRate;
 }
 
+void Checker::CheckStochasticMatrix(ns3::NodeContainer hostNodes, uint64_t ts)
+{
+    static const double epsilon = 1e-6;
+    for (int i = 0; i < NS3Config::numNodes; i++)
+    {
+        ns3::Ptr<ns3::Application> app = hostNodes.Get(i)->GetApplication(1);
+        ns3::Ptr<drl::RpcClientApplication> client = ns3::DynamicCast<drl::RpcClientApplication>(app);
+        std::array<double, NS3Config::numNodes> matrixLine = client->GetMatrix();
+        for (auto &&[idx, x] : matrixLine | std::views::enumerate)
+        {
+            if (x > 1.0 + epsilon || x < 0.0)
+            {
+                SPDLOG_LOGGER_ERROR(logger, "The {}-th element of the stochastic matrix in node {} element is {}", idx, i, x);
+                for (int j = 0; j < NS3Config::numNodes; j++)
+                {
+                    std::string filename = std::format("{}.{}.txt", j, ts);
+                    std::string fullname = NS3Config::traceDir + "/" + expname + "/" + filename;
+                    if (std::filesystem::exists(fullname))
+                    {
+                        std::filesystem::remove(fullname);
+                    }
+                }
+                throw std::logic_error("Stochastic matrix error");
+            }
+        }
+    }
+}
+
 void Checker::CheckTotalRate(ns3::NodeContainer hostNodes, uint64_t ts)
 {
     try
     {
         TraceTotalRate(hostNodes);
     }
-    catch(const std::logic_error& e)
+    catch (const std::logic_error& e)
     {
         for (int i = 0; i < NS3Config::numNodes; i++)
         {
             std::string filename = std::format("{}.{}.txt", i, ts);
-            std::string fullname = NS3Config::traceDir + "/limit-rate/" + filename;
+            std::string fullname = NS3Config::traceDir + "/" + expname + "/" + filename;
             if (std::filesystem::exists(fullname))
             {
                 std::filesystem::remove(fullname);

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "config.h"
+#include "formatter.h"
+
 #include <format>
 #include <iostream>
 #include <fstream>
@@ -7,15 +10,15 @@
 #include <chrono>
 
 #include <ns3/node-container.h>
-
 #include <spdlog/spdlog.h>
 
-#include "config.h"
+static std::string expname = "burst";
 
 class Checker
 {
 public:
     static void CheckTotalRate(ns3::NodeContainer hostNodes, uint64_t ts);
+    static void CheckStochasticMatrix(ns3::NodeContainer hostNodes, uint64_t ts);
 
 private:
     static std::shared_ptr<spdlog::logger> logger;
@@ -27,7 +30,8 @@ template <typename T>
 void TraceValue(std::string context, T oldValue, T newValue)
 {
     std::ofstream file;
-    std::string filename = std::format("{}/limit-rate/{}.txt", NS3Config::traceDir, context);
+    std::string filename = std::format("{}/{}/{}.txt", NS3Config::traceDir, expname, context);
+    // std::cout << "writing file " << filename << std::endl;
     file.open(filename, std::ios::app);
     if (file.tellp() == 0)
     {

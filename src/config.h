@@ -18,13 +18,13 @@ struct Ipv4AddressHash
 class NS3Config
 {
 public:
-    static constexpr int numNodes = 3;
+    static constexpr int numNodes = 10;
     static constexpr int numNeighbours = (numNodes == 2 ? 1 : 2);
     static constexpr uint16_t port = 9;
 
     // csma channel settings
-    static constexpr int csmaDataRate = 100000;     // bps
-    static constexpr int csmaDelay = 1;             // ms
+    static constexpr int csmaDataRate = 100000000;  // bps
+    static constexpr int csmaDelay = 1;             // us
 
     // onoff application settings
     static constexpr int onoffDataRate = 5000;      // bps
@@ -37,13 +37,16 @@ public:
     static constexpr int totalWindows = 100;        // total 100 * 100 ms
 
     // simulation settings
-    static constexpr int iterationTime = 1;
+    static constexpr int iterationTime = 2;
     static constexpr int iterationNum = 100;
     static constexpr int startTime = 0;
-    static constexpr int stopTime = iterationTime * (iterationNum + 2);
+    static constexpr int stopTime = iterationTime * (iterationNum + 10);
 
     // rpc settings
     static constexpr int rpcPort = 9090;
+
+    // algorithm settings
+    static constexpr double c3pEta = 6;
 
     static std::array<double, numNodes> onoffDataRates;
     static std::array<double, numNodes> limitRates;

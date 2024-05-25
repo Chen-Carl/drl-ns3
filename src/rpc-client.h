@@ -27,6 +27,7 @@ public:
 
     double GetInputRate() const { return m_inputRate; }
     double GetLimitRate() const { return m_limitRate; }
+    const std::array<double, NS3Config::numNodes> &GetMatrix() const { return m_matrix; }
 
     void SetInputRate(double inputRate) { m_inputRate = inputRate; }
     void SetLimitRate(double limitRate) { m_limitRate = limitRate; }
@@ -44,6 +45,9 @@ private:
 
     void UpdateInputRate(double inputRate, double limitRate, int other);
     void UpdateLimitRate(double inputRate, double limitRate, int other);
+
+    void C3PUpdateInputRate(double inputRate, double limitRate, int other);
+    void C3PUpdateLimitRate(double inputRate, double limitRate, int other);
 };
 
 }

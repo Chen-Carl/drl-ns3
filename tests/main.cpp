@@ -18,7 +18,6 @@
 int main()
 {
     // 0. clear files
-    // ClearDirectoryContents(NS3Config::traceDir + "/limit-rate");
     uint64_t ts = GetCurrentTs();
 
     // std::cout << NS3Config::matrix << std::endl;
@@ -39,6 +38,7 @@ int main()
     {
         ns3::Ptr<drl::DrlNode> drlNode = ns3::CreateObject<drl::DrlNode>();
         drlNode->SetInputRate(NS3Config::onoffDataRates[i]);
+        drlNode->SetLimitRate((i + 1) / 55.0);
         hostNodes.Add(drlNode);
     }
     ns3::Ptr<ns3::Node> sendNode = ns3::CreateObject<ns3::Node>();
@@ -55,7 +55,7 @@ int main()
 
     ns3::CsmaHelper csma;
     csma.SetChannelAttribute("DataRate", ns3::DataRateValue(NS3Config::csmaDataRate));
-    csma.SetChannelAttribute("Delay", ns3::TimeValue(ns3::MilliSeconds(NS3Config::csmaDelay)));
+    csma.SetChannelAttribute("Delay", ns3::TimeValue(ns3::MicroSeconds(NS3Config::csmaDelay)));
 
     // 1.2 create csma connection
     /**
@@ -170,6 +170,7 @@ int main()
         {
             ns3::Simulator::Schedule(ns3::Seconds(t), &drl::RpcClientApplication::ScheduleSendRpcRequest, rpcClient, 1, hostNodes);
             ns3::Simulator::Schedule(ns3::Seconds(t), &Checker::CheckTotalRate, hostNodes, ts);
+            ns3::Simulator::Schedule(ns3::Seconds(t), &Checker::CheckStochasticMatrix, hostNodes, ts);
         }
     }
     

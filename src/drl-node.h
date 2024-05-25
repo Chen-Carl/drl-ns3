@@ -17,7 +17,7 @@ public:
     int GetIteration() const { return m_iteration; }
     int GetProcess() const { return m_process; }
 
-    void SetLimitRate(double limitRate) { m_limitRate = limitRate; }
+    void SetLimitRate(double limitRate) { m_limitRate.Set(limitRate); }
     void SetInputRate(double inputRate) { m_inputRate = inputRate; }
     void SetIteration(int iteration) { m_iteration = iteration; }
     void SetProcess(int process) { m_process = process; }
